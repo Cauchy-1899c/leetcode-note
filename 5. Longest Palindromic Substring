@@ -1,0 +1,105 @@
+直接、直观的想法：先定义一个判断回文数的函数isPalindrome，然后从长度递减的思路，去遍历s的子串进行检测。
+这是O(n^3)的方法。
+func longestPalindrome(s string) string {
+    var n = len(s)
+    for i := 0; i < n; i++ {
+        for j := 0; j <= i; j++ {
+            if isPalindrome(s[j:n-i+j]) == 1 {
+                return s[j:n-i+j]
+            }
+        }
+    }
+    return s
+}
+
+func isPalindrome(s string) int {
+    var r = 1
+    var n = len(s)
+    if n == 1 {
+        return r
+    }
+    
+    for i := 0; i < n/2; i++ {
+        if s[i] != s[n-i-1] {
+            r = 0
+        }
+    }
+    
+    return r
+}
+
+可以思考一下的方法：使用dp，递推的基础为，如果一个字符串是回文的，那么当且仅当其左右两侧加上了同样的字符时，能够生成一个长度为n+2的回文字符串。
+时间O(n^2)
+空间O(n^2)
+func longestPalindrome(s string) string {
+    var P = make(map[int]map[int]bool, 0)
+    var n = len(s)
+    
+    for i := 0; i < n; i++ {
+        P[i] = make(map[int]bool, 0)
+        P[i][i] = true
+        if i != n-1 {
+            P[i][i+1] = (s[i] == s[i+1])
+        }
+    }
+    
+    for j := 2; j < n; j++ {
+        for i := 0; i < n-j; i++ {
+            P[i][i+j] = P[i+1][i+j-1]&&(s[i] == s[i+j])
+        }
+    }
+    
+    for l := n; l > 0; l-- {
+        for i := 0; i+l-1 < n; i++ {
+            if P[i][i+l-1] {return s[i:i+l]}
+        }
+    }
+    
+    return s
+}
+
+从生成角度进行的方法：
+时间O(n^2)
+空间O(1)
+func longestPalindrome(s string) string {
+    var n = len(s)
+    var start = 0
+    var end = 0
+    var l, l1, l2 int
+    
+    if n == 0 {
+        return ""
+    }
+    
+    for i := 0; i < n; i++ {
+        l1 = expandPalindrome(s, i, i)
+        l2 = expandPalindrome(s, i, i+1)
+        l = max(l1, l2)
+        if l > end - start {
+            start = i - (l-1)/2
+            end = i + l/2
+        }
+    }
+    
+    return s[start:end+1]
+}
+
+func expandPalindrome(s string, i int, j int) int {
+    for {
+        if i < 0 || j >= len(s) || s[i] != s[j] {
+            break
+        }
+        
+        i = i-1
+        j = j+1
+    }
+    
+    return j-i-1
+}
+
+func max(i int, j int) int {
+    if i >= j {
+        return i
+    }
+    return j
+}
